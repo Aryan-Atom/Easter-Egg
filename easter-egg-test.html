@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Easter Egg Test</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    max-width: 600px;
+    margin: 60px auto;
+    padding: 0 20px;
+    color: #222;
+  }
+  #demo-parent {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 20px;
+    background: #fafafa;
+  }
+  #protected-box {
+    background: #e6f1fb;
+    color: #0c447c;
+    padding: 14px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-align: center;
+  }
+  #message-area {
+    margin-top: 14px;
+    min-height: 26px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #d4537e;
+    text-align: center;
+  }
+  #attempt-line {
+    font-size: 13px;
+    color: #888;
+    text-align: center;
+    margin-top: 8px;
+  }
+  h1 { font-size: 20px; }
+  p.hint { color: #666; font-size: 14px; }
+</style>
+</head>
+<body>
+  <h1>Easter egg test page</h1>
+  <p class="hint">
+    Open DevTools (F12 or Cmd+Opt+I), find the <code>#protected-box</code> div
+    in the Elements panel, right-click it, and choose "Delete element"
+    (or select it and press the Delete key).
+  </p>
+
+  <div id="demo-parent">
+    <div id="protected-box">Don't delete me</div>
+  </div>
+
+  <div id="message-area"></div>
+  <p id="attempt-line">Attempts detected: <span id="attempt-count">0</span></p>
+
+  <script>
+    let attempts = 0;
+    const parent = document.getElementById('demo-parent');
+    const msgArea = document.getElementById('message-area');
+    const countEl = document.getElementById('attempt-count');
+
+    function makeBox() {
+      const box = document.createElement('div');
+      box.id = 'protected-box';
+      box.textContent = "Don't delete me";
+      return box;
+    }
+
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of mutation.removedNodes) {
+          const isTarget =
+            node.id === 'protected-box' ||
+            (node.querySelector && node.querySelector('#protected-box'));
+
+          if (isTarget) {
+            attempts++;
+            countEl.textContent = attempts;
+            msgArea.textContent =
+              attempts === 1
+                ? 'Nice try'
+                : attempts < 4
+                ? 'Nice try (again)'
+                : "Persistent, aren't you";
+
+            console.log(
+              '%cNice try',
+              'font-size: 20px; color: #d4537e; font-weight: bold;'
+            );
+
+            // Bring it back after a short delay
+            setTimeout(() => {
+              parent.appendChild(makeBox());
+            }, 400);
+          }
+        }
+      }
+    });
+
+    observer.observe(parent, { childList: true });
+  </script>
+</body>
+</html>
